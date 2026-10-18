@@ -1,0 +1,92 @@
+name: بناء تطبيق الأندرويد (APK)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.json'
+      - 'icon.png'
+      - 'icon-192.png'
+      - 'mobile/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: بناء ملف APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: سحب ملفات المستودع
+        uses: actions/checkout@v7
+
+      - name: تثبيت Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: تثبيت Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: تثبيت Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: تثبيت مكونات Android SDK
+        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: تثبيت الاعتماديات
+        working-directory: mobile
+        run: npm ci --no-audit --no-fund
+
+      - name: نسخ ملفات الويب إلى المشروع
+        run: |
+          mkdir -p mobile/www
+          cp index.html manifest.json sw.js icon.png icon-192.png mobile/www/
+
+      - name: مزامنة مشروع أندرويد
+        working-directory: mobile
+        run: npx cap sync android
+
+      - name: بناء APK
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: تجهيز ملف التحميل
+        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk finance-tracker.apk
+
+      - name: نشر الإصدار مع ملف APK
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: apk-latest
+          name: "📱 تطبيق مديري المالي - أحدث إصدار (بناء رقم ${{ github.run_number }})"
+          body: |
+            ## 📱 مديري المالي الشخصي - تطبيق أندرويد
+
+            تطبيق كامل لإدارة الشؤون المالية الشخصية يعمل دون إنترنت.
+
+            **طريقة التثبيت:**
+            1. حمّل ملف `finance-tracker.apk` من قسم الأصول (Assets) بالأسفل
+            2. افتح الملف من مجلد التنزيلات على جوالك
+            3. إذا ظهرت رسالة تحذير، اختر "السماح بالتثبيت من هذا المصدر"
+            4. اضغط "تثبيت" واستمتع ✅
+
+            **رابط التحميل المباشر:**
+            https://github.com/aszxcvbn1578-cmyk/finance-tracker/releases/latest/download/finance-tracker.apk
+          files: finance-tracker.apk
+          make_latest: "true"

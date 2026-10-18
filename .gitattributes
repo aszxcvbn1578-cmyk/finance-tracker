@@ -1,0 +1,18 @@
+# ضبط نهايات الأسطر حسب المنصة
+* text=auto
+
+# ملفات البناء يجب أن تبقى LF للعمل في Linux CI
+gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# ملفات ثنائية
+*.png binary
+*.jpg binary
+*.jar binary
+*.apk binary
+*.aab binary
+*.keystore binary
+*.jks binary
+*.webp binary

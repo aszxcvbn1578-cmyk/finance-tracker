@@ -1,0 +1,23 @@
+# ===== Node.js =====
+mobile/node_modules/
+mobile/package-lock.json.db
+
+# ===== ملفات مولّدة للموبايل =====
+mobile/www/
+
+# ===== مخرجات بناء أندرويد =====
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/app/src/main/assets/public/
+mobile/android/app/src/main/assets/capacitor.config.json
+mobile/android/app/src/main/assets/capacitor.plugins.json
+
+# ===== ملفات عامة =====
+*.apk
+*.aab
+*.keystore
+*.jks
+Thumbs.db
+.DS_Store
